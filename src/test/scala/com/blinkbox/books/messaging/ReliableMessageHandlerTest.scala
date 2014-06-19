@@ -26,7 +26,7 @@ class ReliableMessageHandlerTest extends TestKit(ActorSystem("test-system")) wit
 
   private var handler: ActorRef = _
 
-  val message = new Event("Test message", EventContext("test"))
+  val message = Event.xml("<test>Test message</test>", EventHeader("test"))
   val retryInterval = 100.millis
 
   before {

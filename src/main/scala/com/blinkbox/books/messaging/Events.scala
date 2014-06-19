@@ -1,6 +1,6 @@
 package com.blinkbox.books.messaging
 
-import java.nio.charset.Charset
+import java.nio.charset.{ Charset, StandardCharsets }
 import org.joda.time.DateTime
 import scala.concurrent.Future
 
@@ -9,7 +9,7 @@ import scala.concurrent.Future
  *
  * NOTE: This is work in progress, and not the final set of values.
  */
-final case class EventContext(
+final case class EventHeader(
   timestamp: DateTime,
   originator: String,
   userId: Option[String],
@@ -17,20 +17,27 @@ final case class EventContext(
   isbn: Option[String]) {
 }
 
-object EventContext {
-  def apply(originator: String): EventContext = EventContext(DateTime.now, originator, None, None, None)
-  def apply(originator: String, userId: Option[String], transactionId: Option[String], isbn: Option[String]): EventContext =
-    EventContext(DateTime.now, originator, userId, transactionId, isbn)
+object EventHeader {
+
+  /** Create event header with given values, and timestamp set to the current time. */
+  def apply(originator: String, userId: Option[String], transactionId: Option[String], isbn: Option[String]): EventHeader =
+    EventHeader(DateTime.now, originator, userId, transactionId, isbn)
+
+  /** Create event context without optional values, and timestamp set to the current time. */
+  def apply(originator: String): EventHeader = EventHeader(DateTime.now, originator, None, None, None)
+
 }
 
+/**
+ * Content type for message payloads.
+ */
 final case class ContentType(
   mediaType: String,
   charset: Option[Charset])
 
 object ContentType {
-  val UTF8 = Charset.forName("UTF-8")
   val XmlContentType = ContentType("application/xml", None)
-  // TODO: etc...
+  val JsonContentType = ContentType("application/json", Some(StandardCharsets.UTF_8))
 }
 
 /**
@@ -40,20 +47,18 @@ object ContentType {
 final case class Event(
   body: Array[Byte],
   contentType: ContentType,
-  context: EventContext) {
-
-  /** Convenience method for creating event with content as XML, the most common message format. */
-  def this(body: String, context: EventContext) =
-    this(body.getBytes(ContentType.UTF8), ContentType.XmlContentType, context)
-
-  /** Convenience method for getting content of event as a String, assuming UTF-8 encoding. */
-  def contentAsString: String = new String(body, ContentType.UTF8)
-
-}
+  context: EventHeader)
 
 object Event {
-  def apply(body: String, context: EventContext): Event =
-    Event(body.getBytes(ContentType.UTF8), ContentType.XmlContentType, context)
+
+  /** Convenience method for creating event with content as XML. */
+  def xml(body: String, context: EventHeader) =
+    this(body.getBytes(StandardCharsets.UTF_8), ContentType.XmlContentType, context)
+
+  /** Convenience method for creating event with content as JSON. */
+  def json(body: String, context: EventHeader) =
+    this(body.getBytes(StandardCharsets.UTF_8), ContentType.JsonContentType, context)
+
 }
 
 /**
