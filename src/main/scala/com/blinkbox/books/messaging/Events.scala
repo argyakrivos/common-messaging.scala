@@ -47,7 +47,9 @@ object ContentType {
 final case class Event(
   body: Array[Byte],
   contentType: ContentType,
-  context: EventHeader)
+  header: EventHeader) {
+  override def toString() = new String(body, contentType.charset.getOrElse(StandardCharsets.UTF_8))
+}
 
 object Event {
 

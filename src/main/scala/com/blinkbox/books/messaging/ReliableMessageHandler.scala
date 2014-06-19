@@ -70,7 +70,7 @@ abstract class ReliableEventHandler(output: EventPublisher, errorHandler: ErrorH
    * If the error handler itself fails, this should cause a retry of the message again.
    */
   private def handleUnrecoverableFailure(event: Event, error: Throwable, originalSender: ActorRef) = {
-    log.error(s"Unable to process event: ${error.getMessage}\nInput message was: ${new String(event.body)}", error)
+    log.error(s"Unable to process event: ${error.getMessage}\nInput message was: $event", error)
     errorHandler.handleError(event, error).onComplete {
       case scala.util.Success(_) => {
         log.info("Handled invalid event for later processing")
