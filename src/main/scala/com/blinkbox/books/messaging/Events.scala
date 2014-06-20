@@ -1,7 +1,7 @@
 package com.blinkbox.books.messaging
 
 import java.nio.charset.{ Charset, StandardCharsets }
-import org.joda.time.DateTime
+import org.joda.time.{ DateTime, DateTimeZone }
 import scala.concurrent.Future
 
 /**
@@ -13,19 +13,26 @@ final case class EventHeader(
   timestamp: DateTime,
   originator: String,
   userId: Option[String],
-  transactionId: Option[String],
-  isbn: Option[String]) {
-}
+  transactionId: Option[String])
 
 object EventHeader {
 
   /** Create event header with given values, and timestamp set to the current time. */
-  def apply(originator: String, userId: Option[String], transactionId: Option[String], isbn: Option[String]): EventHeader =
-    EventHeader(DateTime.now, originator, userId, transactionId, isbn)
+  def apply(originator: String, userId: Option[String], transactionId: Option[String]): EventHeader =
+    EventHeader(DateTime.now, originator, userId, transactionId)
 
   /** Create event context without optional values, and timestamp set to the current time. */
-  def apply(originator: String): EventHeader = EventHeader(DateTime.now, originator, None, None, None)
+  def apply(originator: String): EventHeader = EventHeader(DateTime.now(DateTimeZone.UTC), originator, None, None)
 
+}
+
+/**
+ * Payload of events.
+ */
+final case class EventBody(
+  content: Array[Byte],
+  contentType: ContentType) {
+  def asString() = new String(content, contentType.charset.getOrElse(StandardCharsets.UTF_8))
 }
 
 /**
@@ -45,21 +52,18 @@ object ContentType {
  * other services.
  */
 final case class Event(
-  body: Array[Byte],
-  contentType: ContentType,
-  header: EventHeader) {
-  override def toString() = new String(body, contentType.charset.getOrElse(StandardCharsets.UTF_8))
-}
+  header: EventHeader,
+  body: EventBody)
 
 object Event {
 
   /** Convenience method for creating event with content as XML. */
-  def xml(body: String, context: EventHeader) =
-    this(body.getBytes(StandardCharsets.UTF_8), ContentType.XmlContentType, context)
+  def xml(content: String, header: EventHeader) =
+    this(header, EventBody(content.getBytes(StandardCharsets.UTF_8), ContentType.XmlContentType))
 
   /** Convenience method for creating event with content as JSON. */
-  def json(body: String, context: EventHeader) =
-    this(body.getBytes(StandardCharsets.UTF_8), ContentType.JsonContentType, context)
+  def json(content: String, header: EventHeader) =
+    this(header, EventBody(content.getBytes(StandardCharsets.UTF_8), ContentType.JsonContentType))
 
 }
 
