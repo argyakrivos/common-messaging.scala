@@ -3,6 +3,7 @@ package com.blinkbox.books.messaging
 import java.nio.charset.{ Charset, StandardCharsets }
 import org.joda.time.{ DateTime, DateTimeZone }
 import scala.concurrent.Future
+import java.util.UUID
 
 /**
  * Values describing what operation an event relates to, for logging, tracing etc.
@@ -10,6 +11,7 @@ import scala.concurrent.Future
  * NOTE: This is work in progress, and not the final set of values.
  */
 final case class EventHeader(
+  id: String,
   timestamp: DateTime,
   originator: String,
   userId: Option[String],
@@ -18,11 +20,13 @@ final case class EventHeader(
 object EventHeader {
 
   /** Create event header with given values, and timestamp set to the current time. */
-  def apply(originator: String, userId: Option[String], transactionId: Option[String]): EventHeader =
-    EventHeader(DateTime.now, originator, userId, transactionId)
+  def apply(originator: String, userId: Option[String], transactionId: Option[String], id: String = generateId()): EventHeader =
+    EventHeader(id, DateTime.now, originator, userId, transactionId)
 
   /** Create event context without optional values, and timestamp set to the current time. */
-  def apply(originator: String): EventHeader = EventHeader(DateTime.now(DateTimeZone.UTC), originator, None, None)
+  def apply(originator: String): EventHeader = EventHeader(generateId(), DateTime.now(DateTimeZone.UTC), originator, None, None)
+
+  private def generateId(): String = UUID.randomUUID().toString
 
 }
 
