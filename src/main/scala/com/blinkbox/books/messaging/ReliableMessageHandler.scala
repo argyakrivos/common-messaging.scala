@@ -11,7 +11,7 @@ import scala.util.{ Success, Failure }
  * - Receive messages from a message queue or other reliable source of messages (message can
  * be NACKed or thrown away without ACKing without loss of data).
  * - Performs processing on incoming event, e.g. enrichment with data from other services.
- * - Forwards results to some output which may fail.
+ * - Forwards results to one or more outputs which may fail.
  *
  * This class implements the handling of various errors that may occur. Specifically, it will:
  *
@@ -27,7 +27,7 @@ import scala.util.{ Success, Failure }
  * - Deciding whether any errors are temporary or unrecoverable.
  *
  */
-abstract class ReliableEventHandler(output: EventPublisher, errorHandler: ErrorHandler, retryInterval: FiniteDuration)
+abstract class ReliableEventHandler(errorHandler: ErrorHandler, retryInterval: FiniteDuration)
   extends Actor with ActorLogging {
 
   implicit val ec = context.dispatcher
