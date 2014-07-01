@@ -4,6 +4,11 @@ import java.nio.charset.{ Charset, StandardCharsets }
 import org.joda.time.{ DateTime, DateTimeZone }
 import scala.concurrent.Future
 import java.util.UUID
+import com.typesafe.scalalogging.slf4j.Logging
+import akka.util.Timeout
+import akka.actor.ActorRef
+import akka.pattern.ask
+import scala.concurrent.ExecutionContext
 
 /**
  * Values describing what operation an event relates to, for logging, tracing etc.
@@ -72,17 +77,6 @@ object Event {
 }
 
 /**
- * Common interface used for publishing events.
- */
-trait EventPublisher {
-
-  /**
-   * Publish an event.
-   */
-  def publish(event: Event): Future[Unit]
-}
-
-/**
  * Common interface for objects that dispose of events that can't be processed,
  * typically because they are invalid.
  *
@@ -96,5 +90,19 @@ trait ErrorHandler {
    * May return a failure if the implementation is unable to store the event.
    */
   def handleError(event: Event, error: Throwable): Future[Unit]
+
+}
+
+/**
+ * Simple class that delegates error handling to an Akka actor.
+ * This will typically be used with an actor that writes the event to persistent storage,
+ * for example to a DLQ.
+ */
+class ActorErrorHandler(delegate: ActorRef)(implicit ec: ExecutionContext, timeout: Timeout) extends ErrorHandler with Logging {
+
+  override def handleError(event: Event, e: Throwable): Future[Unit] = {
+    logger.error(s"Unrecoverable error in processing event: $event", e)
+    (delegate ? event).map(result => ())
+  }
 
 }

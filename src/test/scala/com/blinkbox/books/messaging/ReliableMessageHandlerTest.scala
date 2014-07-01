@@ -21,7 +21,6 @@ class ReliableMessageHandlerTest extends TestKit(ActorSystem("test-system")) wit
   with FunSuiteLike with BeforeAndAfter with MockitoSugar {
 
   private var errorHandler: ErrorHandler = _
-  private var eventPublisher: EventPublisher = _
   private var mockHandler: Handler = _
 
   private var handler: ActorRef = _
@@ -30,8 +29,6 @@ class ReliableMessageHandlerTest extends TestKit(ActorSystem("test-system")) wit
   val retryInterval = 100.millis
 
   before {
-    eventPublisher = mock[EventPublisher]
-    doReturn(Future.successful(())).when(eventPublisher).publish(any[Event])
     errorHandler = mock[ErrorHandler]
     doReturn(Future.successful(())).when(errorHandler).handleError(any[Event], any[Throwable])
     mockHandler = mock[Handler]
@@ -45,8 +42,8 @@ class ReliableMessageHandlerTest extends TestKit(ActorSystem("test-system")) wit
   }
 
   /** A concrete message handler class for testing. */
-  private class TestMessageHandler(output: EventPublisher, errorHandler: ErrorHandler, retryInterval: FiniteDuration)
-    extends ReliableEventHandler(output, errorHandler, retryInterval) {
+  private class TestMessageHandler(errorHandler: ErrorHandler, retryInterval: FiniteDuration)
+    extends ReliableEventHandler(errorHandler, retryInterval) {
 
     // Pass on invocations to a mock so we can instrument responses and check invocations.
     override def handleEvent(message: Event, originalSender: ActorRef): Future[Unit] =
@@ -58,7 +55,7 @@ class ReliableMessageHandlerTest extends TestKit(ActorSystem("test-system")) wit
   }
 
   private def messageHandler = system.actorOf(Props(
-    new TestMessageHandler(eventPublisher, errorHandler, retryInterval)))
+    new TestMessageHandler(errorHandler, retryInterval)))
 
   test("Handle valid message") {
     within(200.millis) {

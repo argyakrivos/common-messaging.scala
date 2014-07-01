@@ -13,6 +13,7 @@ libraryDependencies ++= {
   Seq(
     "com.typesafe.akka"   %%  "akka-actor"      % akkaV,
     "com.typesafe.akka"   %%  "akka-testkit"    % akkaV % "test",
+    "com.typesafe"        %%  "scalalogging-slf4j" % "1.1.0",
     "joda-time"           %   "joda-time"       % "2.3",
     "org.joda"            %   "joda-convert"    % "1.6",
     "org.mockito"         %   "mockito-core"    % "1.9.5" % "test",
