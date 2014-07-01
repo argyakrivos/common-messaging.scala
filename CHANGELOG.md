@@ -1,3 +1,13 @@
+## 0.2.0 ([#4](https://git.mobcastdev.com/Hermes/common-messaging/pull/4) 2014-06-30 17:15:01)
+
+Simplified API
+
+#### New features
+
+- Removed MessagePublisher interface.
+- Added simple implementation of ErrorHandler that wraps a publisher Actor.
+
+
 ## 0.1.0 ([#3](https://git.mobcastdev.com/Hermes/common-messaging/pull/3) 2014-06-24 09:49:09)
 
 Added ID field in events.
