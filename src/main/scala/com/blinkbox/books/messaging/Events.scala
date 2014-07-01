@@ -98,11 +98,11 @@ trait ErrorHandler {
  * This will typically be used with an actor that writes the event to persistent storage,
  * for example to a DLQ.
  */
-class ActorErrorHandler(output: ActorRef)(implicit ec: ExecutionContext, timeout: Timeout) extends ErrorHandler with Logging {
+class ActorErrorHandler(delegate: ActorRef)(implicit ec: ExecutionContext, timeout: Timeout) extends ErrorHandler with Logging {
 
   override def handleError(event: Event, e: Throwable): Future[Unit] = {
     logger.error(s"Unrecoverable error in processing event: $event", e)
-    (output ? event).map(result => ())
+    (delegate ? event).map(result => ())
   }
 
 }
