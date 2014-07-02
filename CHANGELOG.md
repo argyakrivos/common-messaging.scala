@@ -1,3 +1,9 @@
+## 0.2.1 ([#5](https://git.mobcastdev.com/Hermes/common-messaging/pull/5) 2014-07-02 11:27:19)
+
+Fix logging
+
+Patch to fix logging so that exception details are logged correctly.
+
 ## 0.2.0 ([#4](https://git.mobcastdev.com/Hermes/common-messaging/pull/4) 2014-06-30 17:15:01)
 
 Simplified API
