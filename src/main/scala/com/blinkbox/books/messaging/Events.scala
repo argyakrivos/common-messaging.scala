@@ -1,14 +1,14 @@
 package com.blinkbox.books.messaging
 
-import java.nio.charset.{ Charset, StandardCharsets }
-import org.joda.time.{ DateTime, DateTimeZone }
-import scala.concurrent.Future
-import java.util.UUID
-import com.typesafe.scalalogging.slf4j.Logging
-import akka.util.Timeout
 import akka.actor.ActorRef
 import akka.pattern.ask
+import akka.util.Timeout
+import com.typesafe.scalalogging.slf4j.Logging
+import java.nio.charset.{ Charset, StandardCharsets }
+import java.util.UUID
+import org.joda.time.{ DateTime, DateTimeZone }
 import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 /**
  * Values describing what operation an event relates to, for logging, tracing etc.

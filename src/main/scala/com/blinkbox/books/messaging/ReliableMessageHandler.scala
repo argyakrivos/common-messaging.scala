@@ -77,7 +77,7 @@ abstract class ReliableEventHandler(errorHandler: ErrorHandler, retryInterval: F
         originalSender ! akka.actor.Status.Success(event)
       }
       case scala.util.Failure(e) => {
-        log.warning("Error handler failed to deal with error, rescheduling", e)
+        log.error(e, "Error handler failed to deal with error, rescheduling")
         reschedule(event, originalSender)
       }
     }
