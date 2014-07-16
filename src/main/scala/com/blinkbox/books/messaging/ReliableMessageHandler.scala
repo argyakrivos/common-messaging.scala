@@ -3,7 +3,7 @@ package com.blinkbox.books.messaging
 import akka.actor.{ Actor, ActorRef, ActorLogging, Status }
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.Future
-import scala.util.{ Success, Failure }
+import scala.util.{Try, Success, Failure}
 
 /**
  * Common base class for event-driven actors, i.e. actors that:
@@ -35,12 +35,20 @@ abstract class ReliableEventHandler(errorHandler: ErrorHandler, retryInterval: F
   def receive = {
     case event: Event =>
       val originalSender = sender
-      val result = handleEvent(event, originalSender)
 
-      result.onComplete {
-        case Success(_) => originalSender ! Status.Success("Handled event")
-        case Failure(e) if isTemporaryFailure(e) => reschedule(event, originalSender)
+      val tryResult = Try {
+        val result = handleEvent(event, originalSender)
+        result.onComplete {
+          case Success(_) => originalSender ! Status.Success("Handled event")
+          case Failure(e) if isTemporaryFailure(e) => reschedule(event, originalSender)
+          case Failure(e) => handleUnrecoverableFailure(event, e, originalSender)
+        }
+      }
+
+      // Catch exception in case actor implementation throws an exception.
+      tryResult match {
         case Failure(e) => handleUnrecoverableFailure(event, e, originalSender)
+        case _ => // OK
       }
 
     case msg => log.warning(s"Unexpected message: $msg")

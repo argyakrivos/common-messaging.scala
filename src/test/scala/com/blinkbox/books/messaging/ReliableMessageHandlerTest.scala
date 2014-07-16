@@ -103,6 +103,22 @@ class ReliableMessageHandlerTest extends TestKit(ActorSystem("test-system")) wit
     }
   }
 
+  test("Handle exception thrown") {
+    val unrecoverableError = new RuntimeException("Test exception")
+    when(mockHandler.handleEvent(any[Event], any[ActorRef]))
+      .thenThrow(unrecoverableError)
+
+    within(200.millis) {
+      handler ! message
+    // Unrecoverable error should be dealt with by error handler,
+    // still returning successful status for processing of the message.
+      expectMsgType[Success]
+      verify(mockHandler).handleEvent(message, self)
+      verify(errorHandler).handleError(message, unrecoverableError)
+      verifyNoMoreInteractions(mockHandler, errorHandler)
+    }
+  }
+
   test("Handle failure to record unrecoverable failure") {
     val unrecoverableError = new Exception("Test exception")
     when(mockHandler.handleEvent(any[Event], any[ActorRef]))
