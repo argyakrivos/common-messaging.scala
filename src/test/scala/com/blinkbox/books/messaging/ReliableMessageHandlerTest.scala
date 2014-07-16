@@ -19,7 +19,7 @@ import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
 class ReliableMessageHandlerTest extends TestKit(ActorSystem("test-system")) with ImplicitSender
-with FunSuiteLike with BeforeAndAfter with MockitoSugar {
+  with FunSuiteLike with BeforeAndAfter with MockitoSugar {
 
   private var errorHandler: ErrorHandler = _
   private var mockHandler: Handler = _
@@ -106,8 +106,7 @@ with FunSuiteLike with BeforeAndAfter with MockitoSugar {
 
   test("Handle exception thrown") {
     val unrecoverableError = new RuntimeException("Test exception")
-    when(mockHandler.handleEvent(any[Event], any[ActorRef]))
-      .thenThrow(unrecoverableError)
+    when(mockHandler.handleEvent(any[Event], any[ActorRef])).thenThrow(unrecoverableError)
 
     within(200.millis) {
       handler ! message

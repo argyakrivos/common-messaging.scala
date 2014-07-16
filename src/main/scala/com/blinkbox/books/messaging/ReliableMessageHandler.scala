@@ -50,8 +50,8 @@ abstract class ReliableEventHandler(errorHandler: ErrorHandler, retryInterval: F
   }
 
   /**
-   * Override in concrete implementations. These should return a Future that indicates
-   * the succesful or otherwise result of processing the event.
+   * Override in concrete implementations. These should return a Try[Future] that wraps
+   * a Future or an exception thrown
    */
   protected def handleEvent(event: Event, originalSender: ActorRef): Try[Future[Unit]]
 
@@ -73,11 +73,7 @@ abstract class ReliableEventHandler(errorHandler: ErrorHandler, retryInterval: F
    * If the error handler itself fails, this should cause a retry of the message again.
    */
   private def handleUnrecoverableFailure(event: Event, error: Throwable, originalSender: ActorRef) = {
-    log.error(s"Unable to process event: ${
-      error.getMessage
-    }\nInput message was: ${
-      event.body.asString
-    }", error)
+    log.error(s"Unable to process event: ${error.getMessage}\nInput message was: ${event.body.asString}", error)
     errorHandler.handleError(event, error).onComplete {
       case scala.util.Success(_) => {
         log.info("Handled invalid event for later processing")
