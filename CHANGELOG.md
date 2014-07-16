@@ -1,3 +1,10 @@
+## 0.3.0 ([#7](https://git.mobcastdev.com/Hermes/common-messaging/pull/7) 2014-07-16 13:28:04)
+
+CP-1567: Changed handleEvent function to return Try[Future]
+
+breaking change
+handleEvent function signature change
+
 ## 0.2.1 ([#5](https://git.mobcastdev.com/Hermes/common-messaging/pull/5) 2014-07-02 11:27:19)
 
 Fix logging
