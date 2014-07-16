@@ -1,6 +1,6 @@
 package com.blinkbox.books.messaging
 
-import akka.actor.{ Actor, ActorRef, ActorLogging, Status }
+import akka.actor.{Actor, ActorRef, ActorLogging, Status}
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.Future
 import scala.util.{Try, Success, Failure}
@@ -18,7 +18,7 @@ import scala.util.{Try, Success, Failure}
  * - Retry processing when a temporary failure occurs.
  * - Pass the incoming message to an error handler when an unrecoverable failure occurs for this message.
  * - Acknowledge the message when processing has completed, whether it results in successful output or
- *   forwarding to the error handler.
+ * forwarding to the error handler.
  *
  * Concrete implementations are responsible for:
  *
@@ -36,29 +36,24 @@ abstract class ReliableEventHandler(errorHandler: ErrorHandler, retryInterval: F
     case event: Event =>
       val originalSender = sender
 
-      val tryResult = Try {
-        val result = handleEvent(event, originalSender)
-        result.onComplete {
-          case Success(_) => originalSender ! Status.Success("Handled event")
-          case Failure(e) if isTemporaryFailure(e) => reschedule(event, originalSender)
-          case Failure(e) => handleUnrecoverableFailure(event, e, originalSender)
-        }
-      }
-
-      // Catch exception in case actor implementation throws an exception.
-      tryResult match {
+      handleEvent(event, originalSender) match {
         case Failure(e) => handleUnrecoverableFailure(event, e, originalSender)
-        case _ => // OK
+        case Success(future) =>
+          future.onComplete {
+            case Success(_) => originalSender ! Status.Success("Handled event")
+            case Failure(e) if isTemporaryFailure(e) => reschedule(event, originalSender)
+            case Failure(e) => handleUnrecoverableFailure(event, e, originalSender)
+          }
       }
 
     case msg => log.warning(s"Unexpected message: $msg")
   }
 
   /**
-   *  Override in concrete implementations. These should return a Future that indicates
-   *  the succesful or otherwise result of processing the event.
+   * Override in concrete implementations. These should return a Future that indicates
+   * the succesful or otherwise result of processing the event.
    */
-  protected def handleEvent(event: Event, originalSender: ActorRef): Future[Unit]
+  protected def handleEvent(event: Event, originalSender: ActorRef): Try[Future[Unit]]
 
   /** Override in concrete implementations to classify failures into temporary vs. unrecoverable. */
   protected def isTemporaryFailure(e: Throwable): Boolean
@@ -78,7 +73,11 @@ abstract class ReliableEventHandler(errorHandler: ErrorHandler, retryInterval: F
    * If the error handler itself fails, this should cause a retry of the message again.
    */
   private def handleUnrecoverableFailure(event: Event, error: Throwable, originalSender: ActorRef) = {
-    log.error(s"Unable to process event: ${error.getMessage}\nInput message was: ${event.body.asString}", error)
+    log.error(s"Unable to process event: ${
+      error.getMessage
+    }\nInput message was: ${
+      event.body.asString
+    }", error)
     errorHandler.handleError(event, error).onComplete {
       case scala.util.Success(_) => {
         log.info("Handled invalid event for later processing")

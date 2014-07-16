@@ -1,13 +1,13 @@
 package com.blinkbox.books.messaging
 
-import akka.actor.{ ActorRef, ActorSystem, Props }
-import akka.actor.Status.{ Success, Failure }
-import akka.testkit.{ TestKit, ImplicitSender }
+import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.actor.Status.{Success, Failure}
+import akka.testkit.{TestKit, ImplicitSender}
 import java.io.IOException
 import java.util.concurrent.TimeoutException
 import org.junit.runner.RunWith
 import org.mockito.Matchers._
-import org.mockito.Matchers.{ eq => matcherEq }
+import org.mockito.Matchers.{eq => matcherEq}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfter
 import org.scalatest.FunSuiteLike
@@ -15,10 +15,11 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
 import scala.concurrent.duration._
 import scala.concurrent.Future
+import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
 class ReliableMessageHandlerTest extends TestKit(ActorSystem("test-system")) with ImplicitSender
-  with FunSuiteLike with BeforeAndAfter with MockitoSugar {
+with FunSuiteLike with BeforeAndAfter with MockitoSugar {
 
   private var errorHandler: ErrorHandler = _
   private var mockHandler: Handler = _
@@ -46,8 +47,8 @@ class ReliableMessageHandlerTest extends TestKit(ActorSystem("test-system")) wit
     extends ReliableEventHandler(errorHandler, retryInterval) {
 
     // Pass on invocations to a mock so we can instrument responses and check invocations.
-    override def handleEvent(message: Event, originalSender: ActorRef): Future[Unit] =
-      mockHandler.handleEvent(message, originalSender)
+    override def handleEvent(message: Event, originalSender: ActorRef): Try[Future[Unit]] =
+      Try(mockHandler.handleEvent(message, originalSender))
 
     // For the tests, consider IOExceptions temporary and all other exceptions unrecoverable.
     override protected def isTemporaryFailure(e: Throwable) = e.isInstanceOf[IOException]
@@ -110,8 +111,8 @@ class ReliableMessageHandlerTest extends TestKit(ActorSystem("test-system")) wit
 
     within(200.millis) {
       handler ! message
-    // Unrecoverable error should be dealt with by error handler,
-    // still returning successful status for processing of the message.
+      // Unrecoverable error should be dealt with by error handler,
+      // still returning successful status for processing of the message.
       expectMsgType[Success]
       verify(mockHandler).handleEvent(message, self)
       verify(errorHandler).handleError(message, unrecoverableError)
