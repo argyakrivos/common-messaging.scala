@@ -1,9 +1,9 @@
 package com.blinkbox.books.messaging
 
-import akka.actor.{ Actor, ActorRef, ActorLogging, Status }
+import akka.actor.{Actor, ActorRef, ActorLogging, Status}
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.Future
-import scala.util.{ Success, Failure }
+import scala.util.{Try, Success, Failure}
 
 /**
  * Common base class for event-driven actors, i.e. actors that:
@@ -18,7 +18,7 @@ import scala.util.{ Success, Failure }
  * - Retry processing when a temporary failure occurs.
  * - Pass the incoming message to an error handler when an unrecoverable failure occurs for this message.
  * - Acknowledge the message when processing has completed, whether it results in successful output or
- *   forwarding to the error handler.
+ * forwarding to the error handler.
  *
  * Concrete implementations are responsible for:
  *
@@ -35,22 +35,25 @@ abstract class ReliableEventHandler(errorHandler: ErrorHandler, retryInterval: F
   def receive = {
     case event: Event =>
       val originalSender = sender
-      val result = handleEvent(event, originalSender)
 
-      result.onComplete {
-        case Success(_) => originalSender ! Status.Success("Handled event")
-        case Failure(e) if isTemporaryFailure(e) => reschedule(event, originalSender)
+      handleEvent(event, originalSender) match {
         case Failure(e) => handleUnrecoverableFailure(event, e, originalSender)
+        case Success(future) =>
+          future.onComplete {
+            case Success(_) => originalSender ! Status.Success("Handled event")
+            case Failure(e) if isTemporaryFailure(e) => reschedule(event, originalSender)
+            case Failure(e) => handleUnrecoverableFailure(event, e, originalSender)
+          }
       }
 
     case msg => log.warning(s"Unexpected message: $msg")
   }
 
   /**
-   *  Override in concrete implementations. These should return a Future that indicates
-   *  the succesful or otherwise result of processing the event.
+   * Override in concrete implementations. These should return a Try[Future] that wraps
+   * a Future or an exception thrown
    */
-  protected def handleEvent(event: Event, originalSender: ActorRef): Future[Unit]
+  protected def handleEvent(event: Event, originalSender: ActorRef): Try[Future[Unit]]
 
   /** Override in concrete implementations to classify failures into temporary vs. unrecoverable. */
   protected def isTemporaryFailure(e: Throwable): Boolean
