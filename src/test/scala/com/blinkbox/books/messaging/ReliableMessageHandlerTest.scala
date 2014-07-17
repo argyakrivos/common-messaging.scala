@@ -47,8 +47,8 @@ class ReliableMessageHandlerTest extends TestKit(ActorSystem("test-system")) wit
     extends ReliableEventHandler(errorHandler, retryInterval) {
 
     // Pass on invocations to a mock so we can instrument responses and check invocations.
-    override def handleEvent(message: Event, originalSender: ActorRef): Try[Future[Unit]] =
-      Try(mockHandler.handleEvent(message, originalSender))
+    override def handleEvent(message: Event, originalSender: ActorRef): Future[Unit] =
+      mockHandler.handleEvent(message, originalSender)
 
     // For the tests, consider IOExceptions temporary and all other exceptions unrecoverable.
     override protected def isTemporaryFailure(e: Throwable) = e.isInstanceOf[IOException]

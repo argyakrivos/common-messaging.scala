@@ -36,7 +36,7 @@ abstract class ReliableEventHandler(errorHandler: ErrorHandler, retryInterval: F
     case event: Event =>
       val originalSender = sender
 
-      handleEvent(event, originalSender) match {
+      Try (handleEvent(event, originalSender)) match {
         case Failure(e) => handleUnrecoverableFailure(event, e, originalSender)
         case Success(future) =>
           future.onComplete {
@@ -53,7 +53,7 @@ abstract class ReliableEventHandler(errorHandler: ErrorHandler, retryInterval: F
    * Override in concrete implementations. These should return a Try[Future] that wraps
    * a Future or an exception thrown
    */
-  protected def handleEvent(event: Event, originalSender: ActorRef): Try[Future[Unit]]
+  protected def handleEvent(event: Event, originalSender: ActorRef): Future[Unit]
 
   /** Override in concrete implementations to classify failures into temporary vs. unrecoverable. */
   protected def isTemporaryFailure(e: Throwable): Boolean
