@@ -1,3 +1,11 @@
+## 0.4.0 ([#8](https://git.mobcastdev.com/Hermes/common-messaging/pull/8) 2014-07-17 09:03:58)
+
+CP-1567: Changed handleEvent function to return Future[Unit] and  change...
+
+breaking change
+changed the handleEvent function signature back to original version
+
+
 ## 0.3.0 ([#7](https://git.mobcastdev.com/Hermes/common-messaging/pull/7) 2014-07-16 13:28:04)
 
 CP-1567: Changed handleEvent function to return Try[Future]
