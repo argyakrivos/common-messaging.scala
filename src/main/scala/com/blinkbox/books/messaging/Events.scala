@@ -1,6 +1,6 @@
 package com.blinkbox.books.messaging
 
-import java.io.ByteArrayOutputStream
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStreamReader}
 import java.nio.charset.{Charset, StandardCharsets}
 import java.util.UUID
 
@@ -10,9 +10,10 @@ import akka.util.Timeout
 import com.typesafe.scalalogging.slf4j.Logging
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
-import org.json4s.jackson.Serialization
-import org.json4s.{DefaultFormats, CustomSerializer}
 import org.json4s.JsonAST.{JNull, JString}
+import org.json4s.jackson.Serialization
+import org.json4s.{CustomSerializer, DefaultFormats}
+
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -41,37 +42,91 @@ object EventHeader {
 }
 
 /**
+ * Allows an object to provide evidence that a case class can be used as a JSON event body
+ *
+ * Each JSON message is published with a particular media type so that its semantics are well
+ * understood by the receiver. This interface should be implemented in an implicit companion
+ * object to provide the media type used for the JSON message.
+ *
+ * {{{
+ * case class MyEvent(foo: String, bar: Int)
+ *
+ * implicit object MyEvent extends JsonEventBody[MyEvent] {
+ *   val jsonMediaType = MediaType("application/vnd.blinkbox.books.events.myevent.v1+json")
+ * }
+ * }}}
+ *
+ * @tparam T The event body class to provide evidence for.
+ */
+trait JsonEventBody[T] {
+  /**
+   * The media type of the JSON body. This should reflect the semantics, not `application/json`!
+   */
+  val jsonMediaType: MediaType
+}
+
+/**
+ * Helper object for creating and parsing JSON event bodies.
+ */
+object JsonEventBody {
+  case object ISODateTimeSerializer extends CustomSerializer[DateTime](_ => ({
+    case JString(s) => ISODateTimeFormat.dateTime.parseDateTime(s)
+    case JNull => null
+  }, {
+    case d: DateTime => JString(ISODateTimeFormat.dateTime.print(d))
+  }))
+
+  private implicit val formats = DefaultFormats + ISODateTimeSerializer
+  val charset = StandardCharsets.UTF_8
+
+  /**
+   * Serializes an object to a JSON event body.
+   */
+  def apply[T <: AnyRef : JsonEventBody](content: T): EventBody = {
+    val stream = new ByteArrayOutputStream
+    Serialization.write(content, stream)
+    EventBody(stream.toByteArray, implicitly[JsonEventBody[T]].jsonMediaType.withCharset(charset))
+  }
+
+  /**
+   * Deserializes an event body into an object if the media type matches.
+   *
+   * This method can be used directly to conditionally deserialize an event body, however it may be
+   * cleaner to wrap it in a type-specific `unapply` method, for example:
+   *
+   * {{{
+   * case class MyEvent(foo: String, bar: Int)
+   *
+   * implicit object MyEvent extends JsonEventBody[MyEvent] {
+   *   val jsonMediaType = MediaType("application/vnd.blinkbox.books.events.myevent.v1+json")
+   *   def unapply(body: EventBody): Option[(String, Int)] = JsonEventBody.unapply[MyEvent](body).flatMap(MyEvent.unapply)
+   * }
+   * }}}
+   *
+   * This then allows simple destructuring of an [[EventBody]], for example:
+   *
+   * {{{
+   * val body: EventBody = JsonEventBody(MyEvent("hello", 123))
+   * body match {
+   *   case MyEvent(foo, bar) => println(s"foo = $foo, bar = $bar")
+   * }
+   * }}}
+   */
+  def unapply[T : Manifest : JsonEventBody](body: EventBody): Option[T] = {
+    if (body.contentType.mediaType == implicitly[JsonEventBody[T]].jsonMediaType) {
+      val reader = new InputStreamReader(new ByteArrayInputStream(body.content), body.contentType.charset.getOrElse(charset))
+      Some(Serialization.read[T](reader))
+    } else None
+  }
+}
+
+/**
  * Payload of events.
  */
 final case class EventBody(
   content: Array[Byte],
   contentType: ContentType) {
   def asString() = new String(content, contentType.charset.getOrElse(StandardCharsets.UTF_8))
-}
-
-/**
- * Provides helper methods to construct event bodies.
- */
-object EventBody {
-  private object Json {
-    case object ISODateTimeSerializer extends CustomSerializer[DateTime](_ => ({
-      case JString(s) => ISODateTimeFormat.dateTime.parseDateTime(s)
-      case JNull => null
-    }, {
-      case d: DateTime => JString(ISODateTimeFormat.dateTime.print(d))
-    }))
-
-    private implicit val formats = DefaultFormats + ISODateTimeSerializer
-
-    def write[T <: AnyRef](message: T): Array[Byte] = {
-      val stream = new ByteArrayOutputStream
-      Serialization.write(message, stream)
-      stream.toByteArray
-    }
-  }
-
-  def json[C <: AnyRef](content: C, mediaType: MediaType): EventBody =
-    EventBody(Json.write(content), mediaType.withCharset(StandardCharsets.UTF_8))
 }
 
 /**
@@ -85,16 +140,12 @@ final case class MediaType(mainType: String, subType: String) {
 }
 
 object MediaType {
-  import scala.language.implicitConversions
-
   private val MediaTypeRegex = """(application|audio|example|image|message|model|multipart|text|video)/([^/]+)""".r
 
   def apply(mediaType: String): MediaType = mediaType match {
     case MediaTypeRegex(mainType, subType) => MediaType(mainType, subType)
     case _ => throw new IllegalArgumentException(s"Invalid media type: $mediaType")
   }
-
-  implicit def string2mediaType(mediaType: String) = MediaType(mediaType)
 }
 
 /**
@@ -105,7 +156,7 @@ final case class ContentType(
   charset: Option[Charset])
 
 object ContentType {
-  val XmlContentType = ContentType("application/xml", None)
+  val XmlContentType = ContentType(MediaType("application/xml"), None)
 }
 
 /**
@@ -123,8 +174,7 @@ object Event {
     this(header, EventBody(content.getBytes(StandardCharsets.UTF_8), ContentType.XmlContentType))
 
   /** Convenience method for creating event with content serialized to JSON. */
-  def json[C <: AnyRef](header: EventHeader, content: C, mediaType: MediaType): Event =
-    this(header, EventBody.json(content, mediaType))
+  def json[C <: AnyRef : JsonEventBody](header: EventHeader, content: C): Event = Event(header, JsonEventBody(content))
 }
 
 /**
