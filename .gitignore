@@ -20,4 +20,5 @@ project/plugins/project/
 .classpath
 *.sc
 /bin
+.idea/
 

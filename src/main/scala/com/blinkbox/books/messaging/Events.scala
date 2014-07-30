@@ -1,14 +1,19 @@
 package com.blinkbox.books.messaging
 
+import java.io.ByteArrayOutputStream
+import java.nio.charset.{Charset, StandardCharsets}
+import java.util.UUID
+
 import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.util.Timeout
 import com.typesafe.scalalogging.slf4j.Logging
-import java.nio.charset.{ Charset, StandardCharsets }
-import java.util.UUID
-import org.joda.time.{ DateTime, DateTimeZone }
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import org.joda.time.format.ISODateTimeFormat
+import org.joda.time.{DateTime, DateTimeZone}
+import org.json4s.jackson.Serialization
+import org.json4s.{DefaultFormats, CustomSerializer}
+import org.json4s.JsonAST.{JNull, JString}
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * Values describing what operation an event relates to, for logging, tracing etc.
@@ -26,13 +31,13 @@ object EventHeader {
 
   /** Create event header with given values, and timestamp set to the current time. */
   def apply(originator: String, userId: Option[String], transactionId: Option[String], id: String = generateId()): EventHeader =
-    EventHeader(id, DateTime.now, originator, userId, transactionId)
+    EventHeader(id, DateTime.now(DateTimeZone.UTC), originator, userId, transactionId)
 
   /** Create event context without optional values, and timestamp set to the current time. */
   def apply(originator: String): EventHeader = EventHeader(generateId(), DateTime.now(DateTimeZone.UTC), originator, None, None)
 
-  private def generateId(): String = UUID.randomUUID().toString
-
+  /** Generates a unique identifier for a message. */
+  def generateId(): String = UUID.randomUUID().toString
 }
 
 /**
@@ -45,15 +50,62 @@ final case class EventBody(
 }
 
 /**
+ * Provides helper methods to construct event bodies.
+ */
+object EventBody {
+  private object Json {
+    case object ISODateTimeSerializer extends CustomSerializer[DateTime](_ => ({
+      case JString(s) => ISODateTimeFormat.dateTime.parseDateTime(s)
+      case JNull => null
+    }, {
+      case d: DateTime => JString(ISODateTimeFormat.dateTime.print(d))
+    }))
+
+    private implicit val formats = DefaultFormats + ISODateTimeSerializer
+
+    def write[T <: AnyRef](message: T): Array[Byte] = {
+      val stream = new ByteArrayOutputStream
+      Serialization.write(message, stream)
+      stream.toByteArray
+    }
+  }
+
+  def json[C <: AnyRef](content: C, mediaType: MediaType): EventBody =
+    EventBody(Json.write(content), mediaType.withCharset(StandardCharsets.UTF_8))
+}
+
+/**
+ * Media type for message payloads.
+ * @param mainType The main type, e.g. 'application'.
+ * @param subType The subtype, e.g. 'rss+xml'.
+ */
+final case class MediaType(mainType: String, subType: String) {
+  override def toString = s"$mainType/$subType"
+  def withCharset(charset: Charset): ContentType = ContentType(this, Some(charset))
+}
+
+object MediaType {
+  import scala.language.implicitConversions
+
+  private val MediaTypeRegex = """(application|audio|example|image|message|model|multipart|text|video)/([^/]+)""".r
+
+  def apply(mediaType: String): MediaType = mediaType match {
+    case MediaTypeRegex(mainType, subType) => MediaType(mainType, subType)
+    case _ => throw new IllegalArgumentException(s"Invalid media type: $mediaType")
+  }
+
+  implicit def string2mediaType(mediaType: String) = MediaType(mediaType)
+}
+
+/**
  * Content type for message payloads.
  */
 final case class ContentType(
-  mediaType: String,
+  mediaType: MediaType,
   charset: Option[Charset])
 
 object ContentType {
   val XmlContentType = ContentType("application/xml", None)
-  val JsonContentType = ContentType("application/json", Some(StandardCharsets.UTF_8))
 }
 
 /**
@@ -70,10 +122,9 @@ object Event {
   def xml(content: String, header: EventHeader) =
     this(header, EventBody(content.getBytes(StandardCharsets.UTF_8), ContentType.XmlContentType))
 
-  /** Convenience method for creating event with content as JSON. */
-  def json(content: String, header: EventHeader) =
-    this(header, EventBody(content.getBytes(StandardCharsets.UTF_8), ContentType.JsonContentType))
-
+  /** Convenience method for creating event with content serialized to JSON. */
+  def json[C <: AnyRef](header: EventHeader, content: C, mediaType: MediaType): Event =
+    this(header, EventBody.json(content, mediaType))
 }
 
 /**
