@@ -1,3 +1,21 @@
+## 0.5.0 ([#9](https://git.mobcastdev.com/Hermes/common-messaging/pull/9) 2014-07-30 15:17:11)
+
+Adds support for strongly typed JSON event bodies
+
+### Breaking changes
+
+- The `Event.json` helper method has changed from expecting a `String` to expecting an object to serialise.
+- The `JsonContentType` field has been removed.
+
+### New features
+
+- Added a `MediaType` class to represent media types.
+- Added the ability to create JSON messages from serialised objects.
+
+### Bug fixes
+
+- Event headers now always use the UTC time zone.
+
 ## 0.4.0 ([#8](https://git.mobcastdev.com/Hermes/common-messaging/pull/8) 2014-07-17 09:03:58)
 
 CP-1567: Changed handleEvent function to return Future[Unit] and  change...
