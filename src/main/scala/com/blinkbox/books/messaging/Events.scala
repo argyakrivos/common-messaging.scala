@@ -69,7 +69,7 @@ trait JsonEventBody[T] {
  * Helper object for creating and parsing JSON event bodies.
  */
 object JsonEventBody {
-  case object ISODateTimeSerializer extends CustomSerializer[DateTime](_ => ({
+  private object ISODateTimeSerializer extends CustomSerializer[DateTime](_ => ({
     case JString(s) => ISODateTimeFormat.dateTime.parseDateTime(s)
     case JNull => null
   }, {
@@ -77,7 +77,7 @@ object JsonEventBody {
   }))
 
   private implicit val formats = DefaultFormats + ISODateTimeSerializer
-  val charset = StandardCharsets.UTF_8
+  private val charset = StandardCharsets.UTF_8
 
   /**
    * Serializes an object to a JSON event body.
@@ -112,12 +112,11 @@ object JsonEventBody {
    * }
    * }}}
    */
-  def unapply[T : Manifest : JsonEventBody](body: EventBody): Option[T] = {
+  def unapply[T : Manifest : JsonEventBody](body: EventBody): Option[T] =
     if (body.contentType.mediaType == implicitly[JsonEventBody[T]].jsonMediaType) {
       val reader = new InputStreamReader(new ByteArrayInputStream(body.content), body.contentType.charset.getOrElse(charset))
       Some(Serialization.read[T](reader))
     } else None
-  }
 }
 
 /**
@@ -140,7 +139,7 @@ final case class MediaType(mainType: String, subType: String) {
 }
 
 object MediaType {
-  private val MediaTypeRegex = """(application|audio|example|image|message|model|multipart|text|video)/([^/]+)""".r
+  private val MediaTypeRegex = """(application|audio|example|image|message|model|multipart|text|video)/([^/;]+)""".r
 
   def apply(mediaType: String): MediaType = mediaType match {
     case MediaTypeRegex(mainType, subType) => MediaType(mainType, subType)
