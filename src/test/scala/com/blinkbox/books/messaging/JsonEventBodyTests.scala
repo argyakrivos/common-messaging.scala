@@ -1,7 +1,10 @@
 package com.blinkbox.books.messaging
 
+import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 
+import org.json4s.JsonAST.JString
+import org.json4s.jackson.JsonMethods
 import org.scalatest.FunSuite
 
 object JsonEventBodyTests {
@@ -9,11 +12,11 @@ object JsonEventBodyTests {
   case class TestEvent2(foo: String, bar: Int)
 
   implicit object TestEvent1 extends JsonEventBody[TestEvent1] {
-    val jsonMediaType = MediaType("application/x-testevent1+json")
+    val jsonMediaType = MediaType("application/vnd.blinkbox.books.events.testevent.v1+json")
   }
 
   implicit object TestEvent2 extends JsonEventBody[TestEvent2] {
-    val jsonMediaType = MediaType("application/x-testevent2+json")
+    val jsonMediaType = MediaType("application/vnd.blinkbox.books.events.testevent.v2+json")
   }
 }
 
@@ -25,6 +28,12 @@ class JsonEventBodyTests extends FunSuite {
     assert(body.contentType.mediaType == TestEvent1.jsonMediaType)
     assert(body.contentType.charset == Some(StandardCharsets.UTF_8))
     assert(body.content != null && body.content.size > 0)
+  }
+
+  test("Adds a $schema field with the inferred schema name") {
+    val body = JsonEventBody(TestEvent1("wibble"))
+    val json = JsonMethods.parse(new ByteArrayInputStream(body.content))
+    assert((json \ "$schema") == JString("events.testevent.v1"))
   }
 
   test("Deconstructs a JSON event body when the media type matches") {
