@@ -1,3 +1,23 @@
+## 0.6.0 ([#10](https://git.mobcastdev.com/Hermes/common-messaging/pull/10) 2014-08-01 14:33:34)
+
+Added an inferred $schema field to messages
+
+### Breaking changes
+
+- Media types must follow the pattern
+`application/vnd.blinkbox.books.{schemaName}+json` or they cannot be
+published using `JsonMessageBody`.
+
+### New features
+
+- Now adds a `$schema` field to all messages, with a schema name
+inferred from the media type.
+
+### Bug fixes
+
+- Deserialised `DateTime` instances from JSON messages are now always
+in the UTC rather than local time zone.
+
 ## 0.5.0 ([#9](https://git.mobcastdev.com/Hermes/common-messaging/pull/9) 2014-07-30 15:17:11)
 
 Adds support for strongly typed JSON event bodies
