@@ -1,6 +1,7 @@
 package com.blinkbox.books.messaging
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStreamReader}
+import java.net.URI
 import java.nio.charset.{Charset, StandardCharsets}
 import java.util.UUID
 
@@ -80,6 +81,17 @@ object JsonEventBody {
     case d: DateTime => JString(ISODateTimeFormat.dateTime.print(d))
   }))
 
+  /**
+   * Supports java.net.URI class serialization and de-serialization
+   */
+  private object URISerializer extends CustomSerializer[URI](_ => ( {
+    case JString(s) => new URI(s)
+    case JNull => null
+  }, {
+    case d: URI => JString(d.toString)
+  }))
+
+
   private class SchemaTypeHint(klass: Class[_], schemaName: String) extends TypeHints {
     import scala.language.existentials
     override val hints = klass :: Nil
@@ -90,7 +102,7 @@ object JsonEventBody {
   private implicit val formats: Formats = new DefaultFormats {
     override val typeHintFieldName: String = "$schema"
     override val wantsBigDecimal: Boolean = true // for endpoints that deal with money
-  } + ISODateTimeSerializer
+  } + ISODateTimeSerializer + URISerializer
 
   private val charset = StandardCharsets.UTF_8
 
