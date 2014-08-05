@@ -1,3 +1,9 @@
+## 0.6.1 ([#11](https://git.mobcastdev.com/Hermes/common-messaging/pull/11) 2014-08-05 10:52:50)
+
+CP-1563: Added serialization/de-serialization support for java.net.URI
+
+improvement
+
 ## 0.6.0 ([#10](https://git.mobcastdev.com/Hermes/common-messaging/pull/10) 2014-08-01 14:33:34)
 
 Added an inferred $schema field to messages
