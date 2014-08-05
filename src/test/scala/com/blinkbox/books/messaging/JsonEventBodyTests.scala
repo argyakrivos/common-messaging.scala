@@ -1,6 +1,7 @@
 package com.blinkbox.books.messaging
 
 import java.io.ByteArrayInputStream
+import java.net.URI
 import java.nio.charset.StandardCharsets
 
 import org.joda.time.{DateTimeZone, DateTime}
@@ -11,12 +12,17 @@ import org.scalatest.FunSuite
 object JsonEventBodyTests {
   case class TestEvent1(foo: String)
   case class TestEvent2(bar: DateTime)
+  case class URITestObject(address: URI)
 
   implicit object TestEvent1 extends JsonEventBody[TestEvent1] {
     val jsonMediaType = MediaType("application/vnd.blinkbox.books.events.testevent.v1+json")
   }
 
   implicit object TestEvent2 extends JsonEventBody[TestEvent2] {
+    val jsonMediaType = MediaType("application/vnd.blinkbox.books.events.testevent.v2+json")
+  }
+
+  implicit object URITestObject extends JsonEventBody[URITestObject] {
     val jsonMediaType = MediaType("application/vnd.blinkbox.books.events.testevent.v2+json")
   }
 }
@@ -61,5 +67,12 @@ class JsonEventBodyTests extends FunSuite {
     val body = JsonEventBody(TestEvent2(now))
     val body2 = JsonEventBody.unapply[TestEvent2](body)
     assert(body2.isDefined && body2.get.bar.getZone == DateTimeZone.UTC)
+  }
+
+  test("should support URI serialization/deserialization") {
+    val uri = URITestObject(new URI("http://localhost"))
+    val eventBody = JsonEventBody(uri)
+    val uriDeserialized = JsonEventBody.unapply[URITestObject](eventBody)
+    assert(new URI("http://localhost") == uriDeserialized.get.address)
   }
 }
