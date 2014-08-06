@@ -83,9 +83,7 @@ object Xml {
       }
 
     /**
-     * Get the Joda DateTime value of the one and only direct child with the given path, otherwise throw an exception.
-     *
-     * The result is in ISO8601 format without millis and converted to UTC
+     * Get the Joda DateTime value from a date in ISO8601 format without millis. The result is converted to UTC.
      */
     def dateTimeValue(path: String): DateTime = {
       val value = stringValue(path)
@@ -100,7 +98,7 @@ object Xml {
      * Get the Joda DateTime value of the one and only direct child with the given path, otherwise throw an exception.
      * Input string is expected to be formatted as "yyyy-MM-dd".
      *
-     * The result is in ISO8601 format and converted to UTC
+     * The result is converted to UTC
      */
     def dateValue(path: String): DateTime = {
       val value = stringValue(path)
