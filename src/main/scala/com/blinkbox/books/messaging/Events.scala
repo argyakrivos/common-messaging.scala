@@ -8,7 +8,7 @@ import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.util.Timeout
 import com.blinkbox.books.json.{DefaultFormats, ExplicitTypeHints}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.joda.time.{DateTime, DateTimeZone}
 import org.json4s.jackson.Serialization
 
@@ -204,7 +204,7 @@ trait ErrorHandler {
  * This will typically be used with an actor that writes the event to persistent storage,
  * for example to a DLQ.
  */
-class ActorErrorHandler(delegate: ActorRef)(implicit ec: ExecutionContext, timeout: Timeout) extends ErrorHandler with Logging {
+class ActorErrorHandler(delegate: ActorRef)(implicit ec: ExecutionContext, timeout: Timeout) extends ErrorHandler with StrictLogging {
 
   override def handleError(event: Event, e: Throwable): Future[Unit] = {
     logger.error(s"Unrecoverable error in processing event: $event", e)

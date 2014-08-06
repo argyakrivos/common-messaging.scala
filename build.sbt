@@ -11,10 +11,10 @@ scalacOptions := Seq("-unchecked", "-deprecation", "-feature", "-encoding", "utf
 libraryDependencies ++= {
   val akkaV = "2.3.2"
   Seq(
-    "com.typesafe.akka"   %%  "akka-actor"          % akkaV,
-    "com.typesafe.akka"   %%  "akka-testkit"        % akkaV % "test",
-    "com.typesafe"        %%  "scalalogging-slf4j"  % "1.1.0",
-    "com.blinkbox.books"  %%  "common-json"         % "0.1.1",
-    "com.blinkbox.books"  %%  "common-scala-test"   % "0.2.0" % "test"
+    "com.typesafe.akka"           %% "akka-actor"           % akkaV,
+    "com.typesafe.scala-logging"  %% "scala-logging-slf4j"  % "2.1.2",
+    "com.blinkbox.books"          %% "common-json"          % "0.1.1",
+    "com.blinkbox.books"          %% "common-scala-test"    % "0.2.0" % "test",
+    "com.typesafe.akka"           %% "akka-testkit"         % akkaV   % "test"
   )
 }
