@@ -1,3 +1,11 @@
+## 0.7.0 ([#13](https://git.mobcastdev.com/Hermes/common-messaging/pull/13) 2014-08-06 15:47:55)
+
+Updated to latest version of scala-logging
+
+### Breaking changes
+
+- Now uses v2.x of the scala-logging library.
+
 ## 0.6.2 ([#12](https://git.mobcastdev.com/Hermes/common-messaging/pull/12) 2014-08-06 12:30:23)
 
 Replaced some JSON code with common-json
