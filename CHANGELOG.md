@@ -1,3 +1,12 @@
+## 0.6.2 ([#12](https://git.mobcastdev.com/Hermes/common-messaging/pull/12) 2014-08-06 12:30:23)
+
+Replaced some JSON code with common-json
+
+### Improvements
+
+- Now uses code in common-json rather than having duplicated code in
+multiple projects.
+
 ## 0.6.1 ([#11](https://git.mobcastdev.com/Hermes/common-messaging/pull/11) 2014-08-05 10:52:50)
 
 CP-1563: Added serialization/de-serialization support for java.net.URI
