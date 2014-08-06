@@ -1,19 +1,16 @@
 package com.blinkbox.books.messaging
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStreamReader}
-import java.net.URI
 import java.nio.charset.{Charset, StandardCharsets}
 import java.util.UUID
 
 import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.util.Timeout
+import com.blinkbox.books.json.{DefaultFormats, ExplicitTypeHints}
 import com.typesafe.scalalogging.slf4j.Logging
-import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
-import org.json4s.JsonAST.{JNull, JString}
 import org.json4s.jackson.Serialization
-import org.json4s.{Formats, CustomSerializer, DefaultFormats, TypeHints}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -74,35 +71,9 @@ trait JsonEventBody[T] {
 object JsonEventBody {
   private val SchemaNameMatcher = """vnd\.blinkbox\.books\.(.+)\+json""".r
 
-  private object ISODateTimeSerializer extends CustomSerializer[DateTime](_ => ({
-    case JString(s) => ISODateTimeFormat.dateTime.parseDateTime(s).toDateTime(DateTimeZone.UTC)
-    case JNull => null
-  }, {
-    case d: DateTime => JString(ISODateTimeFormat.dateTime.print(d))
-  }))
-
-  /**
-   * Supports java.net.URI class serialization and de-serialization
-   */
-  private object URISerializer extends CustomSerializer[URI](_ => ( {
-    case JString(s) => new URI(s)
-    case JNull => null
-  }, {
-    case d: URI => JString(d.toString)
-  }))
-
-
-  private class SchemaTypeHint(klass: Class[_], schemaName: String) extends TypeHints {
-    import scala.language.existentials
-    override val hints = klass :: Nil
-    override def hintFor(clazz: Class[_]) = schemaName
-    override def classFor(hint: String) = Some(klass)
-  }
-
-  private implicit val formats: Formats = new DefaultFormats {
+  private implicit val formats = new DefaultFormats {
     override val typeHintFieldName: String = "$schema"
-    override val wantsBigDecimal: Boolean = true // for endpoints that deal with money
-  } + ISODateTimeSerializer + URISerializer
+  }
 
   private val charset = StandardCharsets.UTF_8
 
@@ -111,7 +82,7 @@ object JsonEventBody {
    */
   def apply[T <: AnyRef : JsonEventBody](content: T): EventBody = {
     val mediaType = implicitly[JsonEventBody[T]].jsonMediaType
-    val schemaTypeHint: SchemaTypeHint = new SchemaTypeHint(content.getClass, schemaName(mediaType))
+    val schemaTypeHint = ExplicitTypeHints(Map(content.getClass -> schemaName(mediaType)))
     val stream = new ByteArrayOutputStream
     Serialization.write(content, stream)(formats + schemaTypeHint)
     EventBody(stream.toByteArray, mediaType.withCharset(charset))
