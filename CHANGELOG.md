@@ -1,3 +1,9 @@
+# Change Log
+
+## 1.0.0 (2014-08-06 16:57:34)
+
+Manually bumped the version to 1.0.0.
+
 ## 0.7.0 ([#13](https://git.mobcastdev.com/Hermes/common-messaging/pull/13) 2014-08-06 15:47:55)
 
 Updated to latest version of scala-logging
