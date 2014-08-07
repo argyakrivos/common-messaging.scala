@@ -7,7 +7,7 @@ import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 
-import com.blinkbox.books.messaging.Xml.NodeSeqWrapper
+import Xml.NodeSeqWrapper
 import org.xml.sax.SAXParseException
 
 @RunWith(classOf[JUnitRunner])
