@@ -1,5 +1,14 @@
 # Change Log
 
+## 1.1.0 ([#17](https://git.mobcastdev.com/Hermes/common-messaging/pull/17) 2014-08-07 15:30:59)
+
+XML schema validation & XML convenience methods
+
+### New features
+
+- XML validator
+- More XML convenience methods for `Int`s and Joda `DateTime`s
+
 ## 1.0.1 ([#16](https://git.mobcastdev.com/Hermes/common-messaging/pull/16) 2014-08-07 09:35:05)
 
 Restrict access to protected members.
