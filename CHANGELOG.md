@@ -1,5 +1,14 @@
 # Change Log
 
+## 1.0.1 ([#16](https://git.mobcastdev.com/Hermes/common-messaging/pull/16) 2014-08-07 09:35:05)
+
+Restrict access to protected members.
+
+### Bug fix
+
+- Tighten access to protected methods, to make it more clear how they're intended to be used, and avoid accidental incorrect use.
+
+
 ## 1.0.0 (2014-08-06 16:57:34)
 
 Manually bumped the version to 1.0.0.
