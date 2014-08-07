@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test xmlns="http://schemas.blinkboxbooks.com/events/test/v1"
+            xmlns:v="http://schemas.blinkboxbooks.com/messaging/versioning"
+            v:version="1.0">
+
+    <name>Test User</name>
+</test>

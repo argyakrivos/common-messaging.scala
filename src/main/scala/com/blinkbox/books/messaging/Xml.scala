@@ -16,6 +16,7 @@ import scala.xml.NodeSeq
  */
 object Xml {
 
+  // The SchemaFactory class is not thread-safe, hence this is a def
   private def schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
 
   /**
@@ -26,11 +27,13 @@ object Xml {
    * @param schemaNames A list of schema names to use. Note, that the order of the names matters.
    * @return A validator for a combined schema
    */
-  def validatorFor(schemaNames: String*) = {
+  def validatorFor(schemaPaths: String*) = {
     var inputs = Array[InputStream]()
     try {
-      for (schemaName <- schemaNames) {
-        inputs = inputs :+ getClass.getResourceAsStream(schemaName)
+      for (schemaPath <- schemaPaths) {
+        val input = getClass.getResourceAsStream(schemaPath)
+        if (input == null) throw new IllegalArgumentException(s"Cannot find schema with path '$schemaPath'")
+        else inputs = inputs :+ input
       }
       val sources: Array[Source] = inputs.map(new StreamSource(_))
       schemaFactory.newSchema(sources).newValidator()
@@ -38,8 +41,6 @@ object Xml {
       inputs.foreach(_.close())
     }
   }
-
-  case class XMLParsingException(message: String, cause: Throwable = null) extends Exception(message, cause)
 
   /**
    * Wrapper class that adds convenience methods for getting values to the NodeSeq
@@ -50,15 +51,27 @@ object Xml {
   implicit class NodeSeqWrapper(nodeSeq: NodeSeq) {
 
     /**
+     * Get the value of the one and only direct child with the given path, otherwise throw an exception.
+     */
+    @deprecated("Use stringValue() instead")
+    def value(path: String): String = stringValue(path)
+
+    /**
      * Get the string value of the one and only direct child with the given path, otherwise throw an exception.
      */
     def stringValue(path: String): String = {
       val found = nodeSeq \ path
-      if (found.size == 0) throw XMLParsingException(s"No matching path '$path' found on node '$nodeSeq'")
-      if (found.size > 1) throw XMLParsingException(
-        s"Expected a single value for path '$path' on node '$nodeSeq', got ${found.size}")
-      found.text.trim
+      if (found.size != 1) throw new IllegalArgumentException(s"Expected a single value for path '$path' on node $nodeSeq, got: ${found.size}")
+      else found.text.trim
     }
+
+    /**
+     * Get the value of the a direct child with the given path if it exists, or return None if no such value exists.
+     *
+     *  Throws an exception if multiple matching values exist.
+     */
+    @deprecated("Use stringValueOptional() instead")
+    def optionalValue(path: String): Option[String] = stringValueOptional(path)
 
     /**
      * Get the string value of a direct child with the given path if it exists, or return None if no such value exists.
@@ -67,7 +80,7 @@ object Xml {
      */
     def stringValueOptional(path: String): Option[String] = {
       val found = nodeSeq \ path
-      if (found.size > 1) throw XMLParsingException(s"Expected at most one value for path '$path' on node '$nodeSeq', got: ${found.size}")
+      if (found.size > 1) throw new IllegalArgumentException(s"Expected at most one value for path '$path' on node '$nodeSeq', got: ${found.size}")
       else if (found.size == 1) Some(found.text.trim)
       else None
     }
@@ -75,24 +88,13 @@ object Xml {
     /**
      * Get the Int value of a direct child with the given path if it exists, or return None otherwise.
      */
-    def intValueOptional(path: String): Option[Int] =
-      try {
-        stringValueOptional(path).map(_.toInt)
-      } catch {
-        case ex: Throwable => throw XMLParsingException("Cannot parse integer", ex)
-      }
+    def intValueOptional(path: String): Option[Int] = stringValueOptional(path).map(_.toInt)
 
     /**
      * Get the Joda DateTime value from a date in ISO8601 format without millis. The result is converted to UTC.
      */
-    def dateTimeValue(path: String): DateTime = {
-      val value = stringValue(path)
-      try {
-        ISODateTimeFormat.dateTimeNoMillis.withZoneUTC.parseDateTime(value)
-      } catch {
-        case ex: Throwable => throw XMLParsingException(s"Could not parse date from '$value'", ex)
-      }
-    }
+    def dateTimeValue(path: String): DateTime =
+      ISODateTimeFormat.dateTimeNoMillis.withZoneUTC.parseDateTime(stringValue(path))
 
     /**
      * Get the Joda DateTime value of the one and only direct child with the given path, otherwise throw an exception.
@@ -100,13 +102,7 @@ object Xml {
      *
      * The result is converted to UTC
      */
-    def dateValue(path: String): DateTime = {
-      val value = stringValue(path)
-      try {
-        DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC.parseDateTime(value)
-      } catch {
-        case ex: Throwable => throw XMLParsingException(s"Could not parse date from '$value'", ex)
-      }
-    }
+    def dateValue(path: String): DateTime =
+      DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC.parseDateTime(stringValue(path))
   }
 }

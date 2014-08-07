@@ -1,11 +1,14 @@
 package com.blinkbox.books.messaging
 
+import javax.xml.transform.stream.StreamSource
+
 import org.joda.time.DateTimeConstants
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 
-import com.blinkbox.books.messaging.Xml.{XMLParsingException, NodeSeqWrapper}
+import com.blinkbox.books.messaging.Xml.NodeSeqWrapper
+import org.xml.sax.SAXParseException
 
 @RunWith(classOf[JUnitRunner])
 class XmlTest extends FunSuite {
@@ -28,15 +31,15 @@ class XmlTest extends FunSuite {
   }
 
   test("Get required value when it doesn't exist") {
-    val ex1 = intercept[XMLParsingException] { root.stringValue("nonExistent") }
-    assert(ex1.getMessage.startsWith("No matching path 'nonExistent' found"))
+    val ex1 = intercept[IllegalArgumentException] { root.stringValue("nonExistent") }
+    assert(ex1.getMessage.startsWith("Expected a single value for path 'nonExistent' on node <root>"))
 
-    val ex2 = intercept[XMLParsingException] { (root \ "nested").stringValue("nonExistent") }
-    assert(ex2.getMessage.startsWith("No matching path 'nonExistent' found"))
+    val ex2 = intercept[IllegalArgumentException] { (root \ "nested").stringValue("nonExistent") }
+    assert(ex2.getMessage.startsWith("Expected a single value for path 'nonExistent' on node <nested>"))
   }
 
   test("Get required value when there are more than one element with the same name") {
-    val ex = intercept[XMLParsingException] { root.stringValue("repeated") }
+    val ex = intercept[IllegalArgumentException] { root.stringValue("repeated") }
     assert(ex.getMessage.startsWith("Expected a single value for path 'repeated'"))
   }
 
@@ -58,8 +61,7 @@ class XmlTest extends FunSuite {
   }
 
   test("Get optional Int value when it is invalid") {
-    val ex = intercept[XMLParsingException] { root.intValueOptional("date") }
-    assert(ex.cause.isInstanceOf[NumberFormatException])
+    intercept[NumberFormatException] { root.intValueOptional("date") }
   }
 
   test("Get Joda DateTime from a timestamp") {
@@ -74,10 +76,10 @@ class XmlTest extends FunSuite {
   }
 
   test("Get Joda DateTime from invalid timestamp fields") {
-    intercept[XMLParsingException] { <r><ts>foo</ts></r>.dateTimeValue("ts") }
-    intercept[XMLParsingException] { <r><ts>2013-10-15</ts></r>.dateTimeValue("ts") }
-    intercept[XMLParsingException] { <r><ts>2013-10-15</ts></r>.dateTimeValue("ts") }
-    intercept[XMLParsingException] { <r><ts>2013-10-15 13:32:51Z</ts></r>.dateTimeValue("ts") }
+    intercept[IllegalArgumentException] { <r><ts>foo</ts></r>.dateTimeValue("ts") }
+    intercept[IllegalArgumentException] { <r><ts>2013-10-15</ts></r>.dateTimeValue("ts") }
+    intercept[IllegalArgumentException] { <r><ts>2013-10-15</ts></r>.dateTimeValue("ts") }
+    intercept[IllegalArgumentException] { <r><ts>2013-10-15 13:32:51Z</ts></r>.dateTimeValue("ts") }
   }
 
   test("Get Joda DateTime from date field without time") {
@@ -90,10 +92,29 @@ class XmlTest extends FunSuite {
     assert(t.getSecondOfDay == 0)
   }
 
-  test("Get Jda DateTime from invalid date field without time") {
-    intercept[XMLParsingException] { <r><date>foo</date></r>.dateValue("date") }
-    intercept[XMLParsingException] { <r><date>13:32:51</date></r>.dateValue("date") }
-    intercept[XMLParsingException] { <r><date>T13:32:51</date></r>.dateValue("date") }
-    intercept[XMLParsingException] { <r><date>2013-10-15T13:32:51Z</date></r>.dateValue("date") }
+  test("Get Joda DateTime from invalid date field without time") {
+    intercept[IllegalArgumentException] { <r><date>foo</date></r>.dateValue("date") }
+    intercept[IllegalArgumentException] { <r><date>13:32:51</date></r>.dateValue("date") }
+    intercept[IllegalArgumentException] { <r><date>T13:32:51</date></r>.dateValue("date") }
+    intercept[IllegalArgumentException] { <r><date>2013-10-15T13:32:51Z</date></r>.dateValue("date") }
+  }
+
+  test("Schema validator throws an exception when schema path is invalid") {
+    intercept[IllegalArgumentException] {
+      Xml.validatorFor("i-do-not-exist.xsd")
+    }
+  }
+
+  test("Validate valid message with schema") {
+    val validator = Xml.validatorFor("/versioning.xsd", "/test.xsd")
+    validator.validate(new StreamSource(getClass.getResourceAsStream("/validMsg.xml")))
+  }
+
+  test("Validate invalid message with schema") {
+    val validator = Xml.validatorFor("/versioning.xsd", "/test.xsd")
+    val ex = intercept[SAXParseException] {
+      validator.validate(new StreamSource(getClass.getResourceAsStream("/invalidMsg.xml")))
+    }
+    assert(ex.getMessage.startsWith("cvc-complex-type.2.4.a: Invalid content was found starting with element 'name'"))
   }
 }
