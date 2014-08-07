@@ -6,7 +6,7 @@ import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.Source
 import javax.xml.XMLConstants
 
-import org.joda.time.DateTime
+import org.joda.time.{LocalDate, DateTime}
 import org.joda.time.format.{DateTimeFormat, ISODateTimeFormat}
 
 import scala.xml.NodeSeq
@@ -97,12 +97,12 @@ object Xml {
       ISODateTimeFormat.dateTimeNoMillis.withZoneUTC.parseDateTime(stringValue(path))
 
     /**
-     * Get the Joda DateTime value of the one and only direct child with the given path, otherwise throw an exception.
+     * Get the Joda LocalDate value of the one and only direct child with the given path, otherwise throw an exception.
      * Input string is expected to be formatted as "yyyy-MM-dd".
      *
      * The result is converted to UTC
      */
-    def dateValue(path: String): DateTime =
-      DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC.parseDateTime(stringValue(path))
+    def dateValue(path: String): LocalDate =
+      DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC.parseLocalDate(stringValue(path))
   }
 }

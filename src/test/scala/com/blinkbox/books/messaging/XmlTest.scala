@@ -82,17 +82,14 @@ class XmlTest extends FunSuite {
     intercept[IllegalArgumentException] { <r><ts>2013-10-15 13:32:51Z</ts></r>.dateTimeValue("ts") }
   }
 
-  test("Get Joda DateTime from date field without time") {
+  test("Get Joda LocalDate from date field without time") {
     val t = root.dateValue("date")
     assert(t.getYear == 2013)
     assert(t.getMonthOfYear == DateTimeConstants.OCTOBER)
     assert(t.getDayOfMonth == 15)
-    assert(t.getHourOfDay == 0)
-    assert(t.getMinuteOfDay == 0)
-    assert(t.getSecondOfDay == 0)
   }
 
-  test("Get Joda DateTime from invalid date field without time") {
+  test("Get Joda LocalDate from invalid date field without time") {
     intercept[IllegalArgumentException] { <r><date>foo</date></r>.dateValue("date") }
     intercept[IllegalArgumentException] { <r><date>13:32:51</date></r>.dateValue("date") }
     intercept[IllegalArgumentException] { <r><date>T13:32:51</date></r>.dateValue("date") }
