@@ -1,5 +1,15 @@
 # Change Log
 
+## 1.1.1 ([#19](https://git.mobcastdev.com/Hermes/common-messaging/pull/19) 2014-08-11 17:30:14)
+
+Fixed logging, warnings.
+
+### Bug fixes:
+
+- Fixed logging message.
+- Removed compiler warnings.
+
+
 ## 1.1.0 ([#17](https://git.mobcastdev.com/Hermes/common-messaging/pull/17) 2014-08-07 15:30:59)
 
 XML schema validation & XML convenience methods
