@@ -53,7 +53,7 @@ object Xml {
     /**
      * Get the value of the one and only direct child with the given path, otherwise throw an exception.
      */
-    @deprecated("Use stringValue() instead")
+    @deprecated("Use stringValue() instead", since = "1.1.0")
     def value(path: String): String = stringValue(path)
 
     /**
@@ -70,7 +70,7 @@ object Xml {
      *
      *  Throws an exception if multiple matching values exist.
      */
-    @deprecated("Use stringValueOptional() instead")
+    @deprecated("Use stringValueOptional() instead", since = "1.1.0")
     def optionalValue(path: String): Option[String] = stringValueOptional(path)
 
     /**
