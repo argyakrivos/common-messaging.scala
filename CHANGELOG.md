@@ -1,5 +1,14 @@
 # Change Log
 
+## 1.1.2 ([#20](https://git.mobcastdev.com/Hermes/common-messaging/pull/20) 2014-08-20 11:24:59)
+
+Fixed comments.
+
+### Improvements.
+
+- Fixed error in comments for abstract method in `ReliableEventHandler`.
+
+
 ## 1.1.1 ([#19](https://git.mobcastdev.com/Hermes/common-messaging/pull/19) 2014-08-11 17:30:14)
 
 Fixed logging, warnings.
