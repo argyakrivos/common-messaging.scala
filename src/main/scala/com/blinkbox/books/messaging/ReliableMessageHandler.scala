@@ -51,8 +51,8 @@ abstract class ReliableEventHandler(errorHandler: ErrorHandler, retryInterval: F
 
   /**
    * Override in concrete implementations. These should return a Future that completes
-   * when the work of the message handler is complete. Implementations are also allow to 
-   * throw an exception synchronously; this will be treated in the same way as a failing Future.
+   * when the work of the message handler is complete. Implementations are also allowed to 
+   * throw an exception immediately - this will be treated in the same way as a failing Future.
    */
   protected[this] def handleEvent(event: Event, originalSender: ActorRef): Future[Unit]
 
