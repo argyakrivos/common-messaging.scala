@@ -1,5 +1,13 @@
 # Change Log
 
+## 1.1.3 ([#22](https://git.mobcastdev.com/Hermes/common-messaging/pull/22) 2014-09-04 13:06:48)
+
+Cross compiles to Scala 2.11
+
+### Improvements
+
+* Now cross-compiles to Scala 2.11
+
 ## 1.1.2 ([#20](https://git.mobcastdev.com/Hermes/common-messaging/pull/20) 2014-08-20 11:24:59)
 
 Fixed comments.
