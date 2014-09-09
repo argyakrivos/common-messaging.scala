@@ -1,5 +1,13 @@
 # Change Log
 
+## 1.1.4 ([#23](https://git.mobcastdev.com/Hermes/common-messaging/pull/23) 2014-09-09 15:44:01)
+
+Bumped Akka version
+
+### Improvements
+
+* Bumped Akka version
+
 ## 1.1.3 ([#22](https://git.mobcastdev.com/Hermes/common-messaging/pull/22) 2014-09-04 13:06:48)
 
 Cross compiles to Scala 2.11
