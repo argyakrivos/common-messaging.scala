@@ -1,5 +1,13 @@
 # Change Log
 
+## 1.1.5 ([#24](https://git.mobcastdev.com/Hermes/common-messaging/pull/24) 2014-09-30 10:55:01)
+
+Bumping versions
+
+### Improvements
+
+* Bumped common-json
+
 ## 1.1.4 ([#23](https://git.mobcastdev.com/Hermes/common-messaging/pull/23) 2014-09-09 15:44:01)
 
 Bumped Akka version
