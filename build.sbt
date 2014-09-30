@@ -13,7 +13,7 @@ libraryDependencies ++= {
   Seq(
     "com.typesafe.akka"           %% "akka-actor"           % akkaV,
     "com.typesafe.scala-logging"  %% "scala-logging-slf4j"  % "2.1.2",
-    "com.blinkbox.books"          %% "common-json"          % "0.2.1",
+    "com.blinkbox.books"          %% "common-json"          % "0.2.2",
     "com.blinkbox.books"          %% "common-scala-test"    % "0.3.0"  % "test",
     "com.typesafe.akka"           %% "akka-testkit"         % akkaV    % "test"
   )
