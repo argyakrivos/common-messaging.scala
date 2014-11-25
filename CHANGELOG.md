@@ -1,5 +1,13 @@
 # Change Log
 
+## 2.0.0 ([#27](https://git.mobcastdev.com/Hermes/common-messaging/pull/27) 2014-11-25 17:32:01)
+
+Removed slf4j
+
+### Breaking change
+
+- Removed scala-logging-slf4j
+
 ## 1.1.7 ([#26](https://git.mobcastdev.com/Hermes/common-messaging/pull/26) 2014-11-25 15:47:33)
 
 Fixed scaladoc errors
