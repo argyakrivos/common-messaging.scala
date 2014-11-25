@@ -60,7 +60,7 @@ trait JsonEventBody[T] {
   /**
    * The media type of the JSON body. This should use the `application` main type, and the subtype should
    * conform to the pattern `vnd.blinkbox.books.{schemaName}+json`, where the `{schemaName}` placeholder is
-   * the value used for the `$schema` field in the message.
+   * the value used for the `\$schema` field in the message.
    */
   val jsonMediaType: MediaType
 }
@@ -108,7 +108,7 @@ object JsonEventBody {
    * {{{
    * val body: EventBody = JsonEventBody(MyEvent("hello", 123))
    * body match {
-   *   case MyEvent(foo, bar) => println(s"foo = $foo, bar = $bar")
+   *   case MyEvent(foo, bar) => println(s"foo = \$foo, bar = \$bar")
    * }
    * }}}
    */
