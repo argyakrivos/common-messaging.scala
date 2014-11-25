@@ -1,5 +1,14 @@
 # Change Log
 
+## 1.1.6 ([#25](https://git.mobcastdev.com/Hermes/common-messaging/pull/25) 2014-11-25 15:26:31)
+
+Bumped versions & updated to multi-project style
+
+### Improvements
+
+- Bumped versions.
+- Switched to SBT multi-project style
+
 ## 1.1.5 ([#24](https://git.mobcastdev.com/Hermes/common-messaging/pull/24) 2014-09-30 10:55:01)
 
 Bumping versions
