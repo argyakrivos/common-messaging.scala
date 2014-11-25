@@ -9,11 +9,11 @@ lazy val root = (project in file(".")).
     libraryDependencies ++= {
       val akkaV = "2.3.7"
       Seq(
-        "com.typesafe.akka"           %% "akka-actor"           % akkaV,
-        "com.typesafe.scala-logging"  %% "scala-logging-slf4j"  % "2.1.2",
-        "com.blinkbox.books"          %% "common-json"          % "0.2.4",
-        "com.blinkbox.books"          %% "common-scala-test"    % "0.3.0"   %  Test,
-        "com.typesafe.akka"           %% "akka-testkit"         % akkaV     %  Test
+        "com.typesafe.akka"           %%  "akka-actor"         %  akkaV,
+        "com.typesafe.scala-logging"  %%  "scala-logging"      %  "3.1.0",
+        "com.blinkbox.books"          %%  "common-json"        %  "0.2.4",
+        "com.blinkbox.books"          %%  "common-scala-test"  %  "0.3.0"   %  Test,
+        "com.typesafe.akka"           %%  "akka-testkit"       %  akkaV     %  Test
       )
     }
   )
