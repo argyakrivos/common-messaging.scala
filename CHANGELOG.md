@@ -1,5 +1,13 @@
 # Change Log
 
+## 1.1.7 ([#26](https://git.mobcastdev.com/Hermes/common-messaging/pull/26) 2014-11-25 15:47:33)
+
+Fixed scaladoc errors
+
+### Bug fixes
+
+- Fixed some scaladoc errors
+
 ## 1.1.6 ([#25](https://git.mobcastdev.com/Hermes/common-messaging/pull/25) 2014-11-25 15:26:31)
 
 Bumped versions & updated to multi-project style
