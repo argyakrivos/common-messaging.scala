@@ -25,12 +25,12 @@ final case class EventHeader(
   originator: String,
   userId: Option[String],
   transactionId: Option[String],
-  additional: Map)
+  additional: Map[String, String])
 
 object EventHeader {
 
   /** Create event header with given values, and timestamp set to the current time. */
-  def apply(originator: String, userId: Option[String], transactionId: Option[String], id: String = generateId(), additional: Map = Map()): EventHeader =
+  def apply(originator: String, userId: Option[String], transactionId: Option[String], id: String = generateId(), additional: Map[String, String] = Map()): EventHeader =
     EventHeader(id, DateTime.now(DateTimeZone.UTC), originator, userId, transactionId, additional)
 
   /** Create event context without optional values, and timestamp set to the current time. */
