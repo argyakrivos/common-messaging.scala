@@ -24,16 +24,17 @@ final case class EventHeader(
   timestamp: DateTime,
   originator: String,
   userId: Option[String],
-  transactionId: Option[String])
+  transactionId: Option[String],
+  additional: Map)
 
 object EventHeader {
 
   /** Create event header with given values, and timestamp set to the current time. */
-  def apply(originator: String, userId: Option[String], transactionId: Option[String], id: String = generateId()): EventHeader =
-    EventHeader(id, DateTime.now(DateTimeZone.UTC), originator, userId, transactionId)
+  def apply(originator: String, userId: Option[String], transactionId: Option[String], id: String = generateId(), additional: Map = Map()): EventHeader =
+    EventHeader(id, DateTime.now(DateTimeZone.UTC), originator, userId, transactionId, additional)
 
   /** Create event context without optional values, and timestamp set to the current time. */
-  def apply(originator: String): EventHeader = EventHeader(generateId(), DateTime.now(DateTimeZone.UTC), originator, None, None)
+  def apply(originator: String): EventHeader = EventHeader(generateId(), DateTime.now(DateTimeZone.UTC), originator, None, None, Map())
 
   /** Generates a unique identifier for a message. */
   def generateId(): String = UUID.randomUUID().toString
