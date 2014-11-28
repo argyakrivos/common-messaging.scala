@@ -1,5 +1,13 @@
 # Change Log
 
+## 2.1.0 ([#28](https://git.mobcastdev.com/Hermes/common-messaging/pull/28) 2014-11-28 15:21:53)
+
+Allow arbitrary headers
+
+### New feature
+
+- Allow the delivery of arbitrary headers. (Additional work to the rabbit-ha library will be needed to support this)
+
 ## 2.0.0 ([#27](https://git.mobcastdev.com/Hermes/common-messaging/pull/27) 2014-11-25 17:32:01)
 
 Removed slf4j
