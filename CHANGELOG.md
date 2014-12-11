@@ -1,5 +1,13 @@
 # Change Log
 
+## 2.1.1 ([#29](https://git.mobcastdev.com/Hermes/common-messaging/pull/29) 2014-12-11 17:06:49)
+
+Bumped common-json
+
+### Improvement
+
+- Bumped `common-json` to `0.2.5`
+
 ## 2.1.0 ([#28](https://git.mobcastdev.com/Hermes/common-messaging/pull/28) 2014-11-28 15:21:53)
 
 Allow arbitrary headers
