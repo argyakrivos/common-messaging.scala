@@ -1,5 +1,15 @@
 # Change Log
 
+## 2.1.2 ([#30](https://git.mobcastdev.com/Hermes/common-messaging/pull/30) 2015-01-19 15:26:25)
+
+Fixed JsonEventBody.unapply throwing exception
+
+### Bug fixes
+
+- Fixed a case where `JsonEventBody.unapply` can throw an Exception if it cannot parse the message, which can break pattern matching from the consumer side of things.
+
+
+
 ## 2.1.1 ([#29](https://git.mobcastdev.com/Hermes/common-messaging/pull/29) 2014-12-11 17:06:49)
 
 Bumped common-json
