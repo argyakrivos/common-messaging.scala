@@ -13,6 +13,7 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.json4s.jackson.Serialization
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 /**
  * Values describing what operation an event relates to, for logging, tracing etc.
@@ -113,12 +114,13 @@ object JsonEventBody {
    * }
    * }}}
    */
-  def unapply[T : Manifest : JsonEventBody](body: EventBody): Option[T] = {
+  def unapply[T : Manifest : JsonEventBody](body: EventBody): Option[T] =
     if (body.contentType.mediaType == implicitly[JsonEventBody[T]].jsonMediaType) {
-      val reader = new InputStreamReader(new ByteArrayInputStream(body.content), body.contentType.charset.getOrElse(charset))
-      Some(Serialization.read[T](reader))
+      Try {
+        val reader = new InputStreamReader(new ByteArrayInputStream(body.content), body.contentType.charset.getOrElse(charset))
+        Serialization.read[T](reader)
+      }.toOption
     } else None
-  }
 
   private def schemaName(mediaType: MediaType): String = mediaType.subType match {
     case SchemaNameMatcher(schemaName) => schemaName
