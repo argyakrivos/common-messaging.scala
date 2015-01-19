@@ -4,8 +4,10 @@ import java.io.ByteArrayInputStream
 import java.net.URI
 import java.nio.charset.StandardCharsets
 
-import org.joda.time.{DateTimeZone, DateTime}
-import org.json4s.JsonAST.JString
+import com.blinkbox.books.json.DefaultFormats
+import org.joda.time.{DateTime, DateTimeZone}
+import org.json4s.JsonAST.{JNothing, JString}
+import org.json4s._
 import org.json4s.jackson.JsonMethods
 import org.scalatest.FunSuite
 
@@ -25,10 +27,19 @@ object JsonEventBodyTests {
   implicit object URITestObject extends JsonEventBody[URITestObject] {
     val jsonMediaType = MediaType("application/vnd.blinkbox.books.events.testevent.v2+json")
   }
+
+  def jsonEvent(json: JValue = JNothing, mediaType: String = "application/vnd.blinkbox.books.events.testevent.v2+json") = {
+    implicit object JsonEvent extends JsonEventBody[JValue] {
+      val jsonMediaType = MediaType(mediaType)
+    }
+    Event.json(EventHeader(mediaType), json)
+  }
 }
 
 class JsonEventBodyTests extends FunSuite {
-  import JsonEventBodyTests._
+  import com.blinkbox.books.messaging.JsonEventBodyTests._
+
+  implicit val json4sJacksonFormats = DefaultFormats
 
   test("Constructs a JSON event body from a class with the correct content type") {
     val body = JsonEventBody(TestEvent1("wibble"))
@@ -60,6 +71,11 @@ class JsonEventBodyTests extends FunSuite {
     val event = TestEvent1("wibble")
     val body = JsonEventBody(event)
     assert(JsonEventBody.unapply[TestEvent2](body) == None)
+  }
+
+  test("Does not deconstruct a JSON event body which is invalid") {
+    val event = jsonEvent()
+    assert(JsonEventBody.unapply[TestEvent2](event.body) == None)
   }
 
   test("Deserializes DateTime objects in UTC") {
